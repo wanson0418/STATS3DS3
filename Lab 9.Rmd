@@ -32,6 +32,11 @@ cor(dplyr::select(seeds, -Class))
 dim(seeds)
 ```
 
+```{r}
+x <- seeds %>%
+  dplyr::select(-Class) %>%
+  scale()
+```
 
 
 
