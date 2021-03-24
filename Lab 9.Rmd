@@ -1,0 +1,41 @@
+---
+title: "Lab 9"
+output: html_document
+---
+
+## Neural networks (seeds data)
+
+seeds data set from UCI repository1
+
+Explore the data.
+Measurements of geometrical properties of kernels belonging to three different varieties of wheat. A soft X-ray technique and GRAINS package were used to construct all seven, real-valued attributes.
+
+```{r}
+library(tidyverse)
+seeds <- read.table(
+  "https://archive.ics.uci.edu/ml/machine-learning-databases/00236/seeds_dataset.txt"
+  )
+colnames(seeds) <- c("area", 
+                     "perimeter", 
+                     "compactness", 
+                     "length_of_kernel", 
+                     "width_of_kernel",
+                     "asy_coeff", 
+                     "length_of_kernel_groove", 
+                     "Class")
+summary(seeds)
+cor(dplyr::select(seeds, -Class))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
