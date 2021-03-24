@@ -28,6 +28,11 @@ cor(dplyr::select(seeds, -Class))
 ```
 
 
+```{r}
+dim(seeds)
+```
+
+
 
 
 
