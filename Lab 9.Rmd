@@ -38,7 +38,155 @@ x <- seeds %>%
   scale()
 ```
 
+```{r}
+set.seed(1)
 
+seeds_train_index <- seeds %>%
+  mutate(ind = 1:nrow(seeds)) %>%
+  group_by(Class) %>%
+  mutate(n = n()) %>%
+  sample_frac(size = .75, weight = n) %>%
+  ungroup() %>%
+  pull(ind)
+```
+
+
+```{r}
+library(nnet)
+class_labels <- pull(seeds, Class) %>% 
+  class.ind() 
+```
+
+
+```{r}
+seeds_train <- x[seeds_train_index, ]
+train_class <- class_labels[seeds_train_index,]
+seeds_test <- x[-seeds_train_index, ] 
+test_class <- class_labels[-seeds_train_index,]
+```
+
+```{r}
+nn_seeds <- nnet(
+  x = seeds_train, 
+  y = train_class, 
+  size = 4, 
+  decay = 0, 
+  softmax = TRUE,
+  maxit=500
+  )
+```
+
+
+```{r}
+nn_pred <- predict(nn_seeds, seeds_test, 
+                   type="class")
+
+tab_seeds <- table(slice(
+  seeds, 
+  -seeds_train_index) %>% pull(Class), 
+  nn_pred)
+
+1-sum(diag(tab_seeds))/sum(tab_seeds)
+```
+
+
+##Neural networks (Boston data (quantitative response))
+
+Let’s consider housing price data, Boston in MASS package.
+Response is quantitative.
+
+```{r}
+library(nnet)
+library(MASS)
+```
+
+```{r}
+train_Boston <- sample(
+  1:nrow(Boston), 
+  nrow(Boston)/2
+  )
+
+x <- scale(Boston)
+```
+
+
+```{r}
+Boston_train <- x[train_Boston, ]
+train_medv <- x[train_Boston, "medv"]
+Boston_test <- x[-train_Boston, ] 
+test_medv <- x[-train_Boston, "medv"]
+```
+
+```{r}
+nn_Boston <- nnet(
+  Boston_train, 
+  train_medv,  
+  size=10, 
+  decay=1, 
+  softmax=FALSE, 
+  maxit=1000,
+  linout=TRUE
+  )
+```
+
+```{r}
+nn_pred <- predict(
+  nn_Boston, 
+  Boston_test,
+  type="raw"
+  )
+```
+
+
+```{r}
+plot(test_medv, nn_pred)
+
+mean((test_medv - nn_pred)^2)
+```
+
+
+##CV for NN - Iris data
+
+80%/20% training/test set.
+
+```{r}
+library(e1071)
+library(cluster)
+set.seed(1)
+
+data("iris")
+
+Species <- pull(iris, Species)
+
+xy <- dplyr::select(iris, -Species) %>%
+  scale() %>% 
+  data.frame() %>% 
+  mutate(Species = Species) # scale predictors
+
+iris_train_index <- iris %>%
+  mutate(ind = 1:nrow(iris)) %>%
+  group_by(Species) %>%
+  mutate(n = n()) %>%
+  sample_frac(size = .8, weight = n) %>%
+  ungroup() %>%
+  pull(ind)
+
+iris_train <- slice(xy, iris_train_index)
+iris_test <- slice(xy, -iris_train_index)
+class_labels <- pull(xy, Species) %>% 
+  class.ind() 
+
+iris_nnet1 <- tune.nnet(
+  Species~., 
+  data = iris_train, 
+  size = 1:30, 
+  tunecontrol = tune.control(sampling = "cross",cross=5)
+  )
+
+head(summary(iris_nnet1))
+
+plot(iris_nnet1)
+```
 
 
 
