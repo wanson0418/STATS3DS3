@@ -189,9 +189,72 @@ plot(iris_nnet1)
 ```
 
 
+```{r}
+library(nnet)
+nn_iris <- nnet(
+  x = dplyr::select(iris_train, -Species),
+  y = class_labels[iris_train_index, ],
+  size = iris_nnet1$best.parameters[1,1], 
+  decay = 0, 
+  softmax = TRUE
+  )
+```
 
 
+```{r}
+nn_pred <- predict(
+  nn_iris, 
+  dplyr::select(iris_test, -Species), 
+  type="class"
+  )
 
+tab <- table(pull(iris_test, Species), 
+  nn_pred
+  )
+
+tab
+1- sum(diag(tab))/sum(tab)
+```
+
+```{r}
+set.seed(1)
+
+iris_nnet2 <- tune.nnet(
+  Species~., 
+  data = iris_train, 
+  size = 1:20,
+  decay = 0:3,
+  tunecontrol = tune.control(sampling = "cross",cross=5)
+  )
+
+head(summary(iris_nnet2))
+
+plot(iris_nnet2)
+```
+
+```{r}
+nn_iris_d_s <- nnet(
+  x = dplyr::select(iris_train, -Species),
+  y = class_labels[iris_train_index, ], 
+  size = iris_nnet2$best.parameters[1,1], 
+  decay = iris_nnet2$best.parameters[1,2], 
+  softmax = TRUE
+  )
+
+# Compute test error
+nn_pred <- predict(
+  nn_iris_d_s, 
+  dplyr::select(iris_test, -Species), 
+  type="class"
+  )
+
+tab <- table(pull(iris_test, Species), 
+  nn_pred
+  )
+
+tab
+1- sum(diag(tab))/sum(tab)
+```
 
 
 
